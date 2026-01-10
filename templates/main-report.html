@@ -12,12 +12,6 @@ Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT License
     <meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>{{modelTitle}}</title>
-
-<!--
-    <link rel="stylesheet" href="../resources/roboto.css">
-    <link rel="stylesheet" href="../resources/icon.css">
-    <link rel="stylesheet" href="../resources/picnic-custom.css">
--->
 		<style>
 			{{roboto}}
 			{{icon}}
@@ -137,6 +131,7 @@ Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT License
 				border-right: 1px solid #dddddd;
 				border-bottom: 1px solid #dddddd;
 			}
+
 
 /* Navigation Behavior */
 		  /* hide some elements by default */
@@ -329,6 +324,12 @@ Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT License
 				color: #65a8e3;					/* blue taken from original Archi view icon */
 			}
 
+			div.tree label.entire-model::before {
+				content: "\f0e8";				/* share-alt-square (that's the best I found to suggest a view) */
+				color: #65a8e3;					/* blue taken from original Archi view icon */
+			}
+
+
 /* Toggle Switch */
 			label.switch::before {
 		  	font-family: 'Icon';		/* use icon font */
@@ -356,131 +357,67 @@ Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT License
 				display: table-row;			/* has to be table-row because we use it to reveal rows */
 			}
 	  </style>
+	<style>
+		  tr.header-row td {
+    	background-color: #e0e0e0 !important;
+    	font-weight: bold !important;
+  		}
+	</style>
+
   </head>
 	<body>
 		<!-- All inputs must be at the begining of the page (CSS rules uses 'input ~ *' selector) -->
-		<!-- Radio inputs used to select the current 'mode' (View Visualizer, Query Tool, DataVisualization) -->
-	  <input id='views'   class="hidden" type='radio' name='nav' checked>
-	  <input id='queries' class="hidden" type='radio' name='nav'>
-	  <input id='dataviz' class="hidden" type='radio' name='nav'>
 		<!-- Checkbox used to show/hide the sidebar -->
 		<input id="sidebar" class="hidden" type="checkbox" checked>
 		<!-- Checkbox checked only when JavaScript is enabled -->
 		<input id="javascript" class="hidden" type="checkbox">
-		<!-- Checkbox used to enable/disable markdown rendering for documentation -->
-		<input id="markdown" class="hidden" type="checkbox" checked>
 
 		<!-- One checkbox per view -->
-		<input id='id-model' type='radio' name='views' checked>
+		<input id='id-model' type='radio' name='views'>
 		{{inputCheckbox}}
-
-		<!-- Modal dialogs -->
-		<div class="modal">
-			<input id="preferences" type="checkbox">
-			<label for="preferences" class="overlay"></label>
-			<div>
-				<header>
-				  <h3>Preferences</h3>
-				  <label for="preferences" class="close">&times;</label>
-				</header>
-				<section style="min-width:500px;min-height:100px;">
-					<div class="flex" >
-						<div class="four-fifth">
-							Use Markdown for documentations:
-						</div>
-						<div class="fifth text-right">
-							<label for="markdown" class="switch"></label>
-						</div>
-					</div>
-				</section>
-				<footer>
-				  <label for="preferences" class="button right">
-				    OK
-				  </label>
-				</footer>
-			</div>
-		</div>
 
 		<!-- Report eally starts here with the sidebar -->
 		<aside class="sidebar">
 			<label for="sidebar" id="hide-sidebar" class="icon close"></label>
 			<nav class="secondary views">
 				<header class="top-header">
-					<h3>Content</h3>
+					<h3>Tartalom</h3>
 				</header>
 				<div class="tree">
 					{{treeContent}}
+					<label for="id-model" class="entire-model">Teljes Modell</label>
 				</div>
-			</nav>
-			<nav class="secondary queries">
-				<header class="top-header">
-					<h3>Query</h3>
-				</header>
-			</nav>
-			<nav class="secondary dataviz">
-				<header class="top-header">
-					<h3>Data Visualization</h3>
-				</header>
-			</nav>
-			<nav class="primary">
-				<span class="spacer"></span>
-				<label for='views' data-tooltip="Model Content" class="tooltip-top">
-					<i class="icon book"></i>
-				</label>
-				<span class="spacer"></span>
-				<label for='queries' data-tooltip="Query Model" class="js-only tooltip-top">
-					<i class="icon table"></i>
-				</label>
-				<span class="js-only spacer"></span>
-				<label for='dataviz' data-tooltip="Reports" class="js-only tooltip-top">
-					<i class="icon chart"></i>
-				</label>
-				<span class="js-only spacer"></span>
 			</nav>
 		</aside>
 
 		<header id="main-header" class="top-header expandable">
 			<label for="sidebar" id="show-sidebar" class="icon menu"></label>
-			<label for="id-model">
-				<h3 class="title">{{modelTitle}}</h3>
-			</label>
-			<span class="spacer"></span>
-			<label for="preferences" id="show-preferences" class="icon gear"></label>
+			<h3 class="title">{{modelTitle}}</h3>
 		</header>
 
 		<main class="expandable">
 			<article class="views">
 				<header>
-					<h2 class="hidden id-model">{{modelTitle}}</h2>
+					<h2 class="hidden id-model">{{modelTitle}} Teljes modell</h2>
 					{{viewTitles}}
 				</header>
 
 				<img class="hidden id-model"/>
 				{{viewDiagrams}}
 
-				<div class="tabs three">
-					<input id='view-documentation' type='radio' name='view-detail' checked />
-					<label for="view-documentation" class="pointer">Documentation</label>
-					<input id='view-elements' type='radio' name='view-detail'>
-					<label for="view-elements" class="pointer">Elements</label>
+				<div class="tabs two">
+					
+					<input id='view-elements' type='radio' name='view-detail' checked>
+					<label for="view-elements" class="pointer">Funkciók</label>
 					<input id='view-relationships' type='radio' name='view-detail'>
-					<label for="view-relationships" class="pointer">Relationships</label>
+					<label for="view-relationships" class="pointer">Kapcsolatok</label>
 					<div class="row">
-						<div>
-							<div class="hidden id-model">
-								<div class="txt">{{modelPurposeText}}</div>
-								<div class="md">{{modelPurposeMarkdown}}</div>
-							</div>
-							{{viewDocumentations}}
-						</div>
-
 						<div>
 							<table class="full fixed">
 								<thead>
 									<tr>
-										<th class="fourth">Name
-										<th class="fourth">Type
-										<th class="half">Documentation
+										<th class="fourth">Név
+										<th class="half">Leírás
 								<tbody>
 									{{elements}}
 							</table>
@@ -489,27 +426,16 @@ Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT License
 						<div>
 							<table class="full fixed">
 								<thead><tr>
-									<th class="sixth">Name
-									<th class="sixth">Type
-									<th class="sixth">Source
-									<th class="sixth">Target
-									<th class="third">Documentation
+									<th class="sixth">Név
+									<th class="sixth">Honnan
+									<th class="sixth">Hová
+									<th class="third">Leírás
 								<tbody>
 									{{relationships}}
 							</table>
 						</div>
 					</div>
 				</div>
-			</article>
-			<article class="queries">
-				<header>
-					<h2>Queries</h2>
-				</header>
-			</article>
-			<article class="dataviz">
-				<header>
-					<h2>Data Visualization</h2>
-				</header>
 			</article>
 		</main>
 

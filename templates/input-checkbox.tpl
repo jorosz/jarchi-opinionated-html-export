@@ -1,1 +1,1 @@
-<input id='{{viewId}}' type='radio' name='views'>
+    <input id='{{viewId}}' type='radio' name='views' {{checked}}>
