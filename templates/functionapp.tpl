@@ -1,8 +1,13 @@
-<% if (viewIDs && viewIDs !== '') { %>
-<tr class="header-row hidden id-model {{viewIDs}}">
-<% } else { %>
-<tr class="header-row">
-<% } %>
-  <td colspan=2>{{name}}  
- 
+<h3>{{appName}}</h3>
+<p>{{appDescription}}</p>
+<table class="full fixed">
+<thead>
+	<tr>
+	<th class="fourth">Név
+	<th class="half">Leírás
+	<tbody>
+		{{functions_html}}
+</table>
+
+
 

@@ -1,0 +1,17 @@
+{
+  "cSpell.words": ["Archimate"],
+
+  // Treat .ajs files as JavaScript in the editor
+  "files.associations": {
+    "*.ajs": "javascript"
+  },
+
+  // ESLint: only manual (no auto-fix on save)
+  "eslint.validate": ["javascript"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  // (Optional) Do not auto-format on save if you want full manual control
+  "editor.formatOnSave": false
+}

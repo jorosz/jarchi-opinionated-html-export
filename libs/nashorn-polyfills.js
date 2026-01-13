@@ -16,7 +16,7 @@ function readFully(url, charset) {
         var reader = new BufferedReader(new InputStreamReader(urlObj.openStream(), charset));
 
         var line = reader.readLine();
-        while (line != null) {
+        while (line !== null) {
             result += line + '\n';
             line = reader.readLine();
         }

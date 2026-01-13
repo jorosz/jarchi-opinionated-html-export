@@ -1,10 +1,7 @@
 <!--
-Single-page HTML Export
+Single-page HTML Export v2
 
-Created with Archi (https://www.archimatetool.com) and the following jArchi script:
-https://github.com/archi-contribs/jarchi-single-page-html-export
-
-Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT License
+Original Work Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT License
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -49,7 +46,7 @@ Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT License
 		  }
 
 /* Utilities */
-  		.right {
+  			.right {
 				float: right;
 			}
 			.left {
@@ -373,7 +370,6 @@ Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT License
 		<input id="javascript" class="hidden" type="checkbox">
 
 		<!-- One checkbox per view -->
-		<input id='id-model' type='radio' name='views'>
 		{{inputCheckbox}}
 
 		<!-- Report eally starts here with the sidebar -->
@@ -385,7 +381,6 @@ Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT License
 				</header>
 				<div class="tree">
 					{{treeContent}}
-					<label for="id-model" class="entire-model">Teljes Modell</label>
 				</div>
 			</nav>
 		</aside>
@@ -396,47 +391,7 @@ Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT License
 		</header>
 
 		<main class="expandable">
-			<article class="views">
-				<header>
-					<h2 class="hidden id-model">{{modelTitle}} Teljes modell</h2>
-					{{viewTitles}}
-				</header>
-
-				<img class="hidden id-model"/>
-				{{viewDiagrams}}
-
-				<div class="tabs two">
-					
-					<input id='view-elements' type='radio' name='view-detail' checked>
-					<label for="view-elements" class="pointer">Funkciók</label>
-					<input id='view-relationships' type='radio' name='view-detail'>
-					<label for="view-relationships" class="pointer">Kapcsolatok</label>
-					<div class="row">
-						<div>
-							<table class="full fixed">
-								<thead>
-									<tr>
-										<th class="fourth">Név
-										<th class="half">Leírás
-								<tbody>
-									{{elements}}
-							</table>
-						</div>
-
-						<div>
-							<table class="full fixed">
-								<thead><tr>
-									<th class="sixth">Név
-									<th class="sixth">Honnan
-									<th class="sixth">Hová
-									<th class="third">Leírás
-								<tbody>
-									{{relationships}}
-							</table>
-						</div>
-					</div>
-				</div>
-			</article>
+			{{views}}
 		</main>
 
 		<script>

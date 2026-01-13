@@ -1,4 +1,4 @@
-<tr class="hidden id-model {{viewIDs}}">
+<tr>
   <td>{{name}}
-  <td><div class="md">{{documentation}}</div>
+  <td>{{documentation}}
 
