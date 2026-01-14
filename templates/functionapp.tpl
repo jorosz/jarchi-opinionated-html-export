@@ -1,4 +1,4 @@
-<h3>{{appName}}</h3>
+<h4>{{appName}}</h4>
 <p>{{appDescription}}</p>
 <table class="full fixed">
 <thead>

@@ -1,12 +1,10 @@
-<h2 class="hidden {{id}}">{{name}}</h2>
 <article class="views hidden {{id}}">
+  <h2>{{name}}</h2>
   <header>
-    {{name}}
+    {{documentation}}
   </header>
-
+  <h3>Ábra</h3>
   <img src="data:image/png;base64,{{diagram}}">
-  {{documentation}}
-
   <h3>Alkalmazások és Funkciók</h2>
   {{apps_html}}
 

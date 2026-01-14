@@ -40,11 +40,19 @@ _.templateSettings = {
 };
 
 // Set Markdown rendering options
+const renderer = new marked.Renderer();
+
+// Only override what you need
+renderer.heading = function (text, level) {
+  return '<p><strong>' + text + '</strong></p>\n';
+};
+
 var mdOptions = {
   gfm: true,
   breaks: true,
   smartLists: true,
-  smartypants: true
+  smartypants: true,
+  renderer: renderer
 };
 
 var roboto = readFully(__DIR__ + 'resources/roboto.css', 'UTF-8');
@@ -152,7 +160,6 @@ function exportViews(folder) {
           let ec = $(fun.concept);
           // determine where this function is linked to
           let appComponent = ec.inRels('realization-relationship').sourceEnds().filter('application-component').first();
-
           let fObj = {
             name: _.escape(fun.name),
             id: fun.id,
@@ -162,6 +169,7 @@ function exportViews(folder) {
           };
 
           viewData.functions.push(fObj);
+          console.log(fObj);
         });
 
       // iterate application components and build the list
@@ -169,14 +177,20 @@ function exportViews(folder) {
       $(v)
         .find('application-component')
         .each((app) => {
+          // need the concept not the one on the diagram for ID
+          let appC = app.concept;
+
+          console.log(app + ' ' + app.id + ' ' + appC.id);
           let aObj = {
             appName: app.name,
             appDescription: marked(_.escape(app.documentation), mdOptions),
+            appID: appC.id,
+
             // next one filters functions for this application into functions
             functions: _.where(viewData.functions || [], {
-              applicationID: app.id
+              applicationID: appC.id
             }),
-            functions_html: ''
+            functions_html: 'placeholder for generated html'
           };
           viewData.components.push(aObj);
         });
@@ -208,20 +222,22 @@ function exportViews(folder) {
 _(viewCollection).each((v) => {
   // map the flows
   let flow_html = _.map(v.flows || [], (f) => {
-    return tplRelationship(f) || '';
+    return f.relationshipName ? tplRelationship(f) || '' : ''; // does not print flows with no name
   }).join('\n');
 
   // map the apps
-  let app_html = _.map(v.apps || [], (app) => {
+  let app_html = _.map(v.components || [], (app) => {
     // inside the app we map the function
     app.functions_html = _.map(app.functions || [], (fun) => {
       return tplFunction(fun) || '';
     }).join('');
+
     return tplFunctionApp(app) || '';
   }).join('');
 
-  v.flow_html = flow_html;
-  v.app_html = app_html;
+  v.flows_html = flow_html;
+
+  v.apps_html = app_html;
 });
 
 // apply view template to get the views html
