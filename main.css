@@ -219,6 +219,7 @@ input[name="views"]:not(:checked) ~ * .views 		  /* should fix hiding of views n
   height: var(--header-height);
   display: flex;
   align-items: center;
+  width: 100%; /* TODO */
 }
 
 /* text inside top-header = titles */

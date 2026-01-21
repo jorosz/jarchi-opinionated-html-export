@@ -37,6 +37,7 @@ module.exports = [
           exit: "readonly",
           quit: "readonly",
           __DIR__: "readonly",
+          workbenchwindow: "readonly",
           // Your custom functions
           readFully: "readonly",
         }
