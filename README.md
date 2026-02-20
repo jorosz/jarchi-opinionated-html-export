@@ -11,8 +11,7 @@ conceptual application design.
 The scripts exports all views from the selected folder alongside the views
 diagram, and generates documentation for each view.
 
-Copyright (c) 2026 J Orosz
-
+Another script is also provided that generates multiple HTML files, one per view.
 -
 
 Based on https://github.com/archi-contribs/jarchi-single-page-html-export,
@@ -36,8 +35,8 @@ their flows for each view.
 
 ### Other notable changes:
 
-- single page view (no tabs) as this is more efficient for exporting the model and this tool will be
-  used in that context more I believe
+- the single page view has *no tabs* as this is more efficient for exporting the model and this 
+tool will be used in that context more I believe
 - the original script implements a hiding logic where each concept in a table row is listed once and
   the shown or hidden depending on view. my version produces the tables for each view, potentially
   duplicating the content. it results in a cleaner code in my opinion at the cost of a slightly
@@ -45,7 +44,7 @@ their flows for each view.
 - CSS handling logic sanitized, it's in a separate file so it can be linted
 - simplified (?) visibility rule creation
 - CSS variables replaced the parameters. it's 2026 and IE is dead (finally)!
-- TODO: all tree and navigation with show/hide logic simplified to a single navigation using anchors
+- tree and navigation with show/hide logic simplified to a single navigation using anchors
   to allow printing and export. also support for a single view should be added
 - removed markdown checkbox (it's on and that's it. nothing markdown does that should not
   be done in terms of documenting stuff). marked has customized to ignore headers and render them as

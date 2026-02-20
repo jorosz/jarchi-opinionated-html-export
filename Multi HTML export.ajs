@@ -144,7 +144,7 @@ function exportViews(folder) {
             id: fun.id,
             applicationName: appComponent ? appComponent.name : 'N/A',
             applicationID: appComponent ? appComponent.id : 'default',
-            documentation: marked(ec.documentation || '', mdOptions)
+            documentation: marked(fun.documentation || '', mdOptions)
           };
 
           viewData.functions.push(fObj);
