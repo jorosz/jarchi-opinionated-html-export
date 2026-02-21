@@ -1,0 +1,11 @@
+{
+  "sidebarTitle": "Contents",
+  "allViews": "All Views",
+  "diagramSection": "Diagram",
+  "appsSection": "Application Components and Functions",
+  "interfacesSection": "Interface Flows",
+  "colName": "Name",
+  "colFrom": "Source",
+  "colTo": "Target",
+  "colDescription": "Description"
+}

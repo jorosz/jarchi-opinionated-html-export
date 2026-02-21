@@ -6,7 +6,6 @@ Original Work Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT
 <html lang="en">
   <head>
     <meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>{{modelTitle}} model export</title>
 	{{styleTag}}
 
@@ -19,18 +18,24 @@ Original Work Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT
 		<input id="sidebar" class="hidden" type="checkbox" checked>
 		<!-- Checkbox checked only when JavaScript is enabled -->
 		<input id="javascript" class="hidden" type="checkbox">
+		<!-- Radio in the views group: selecting a view deselects this and vice versa -->
+		<input id="show-all-views" class="hidden" type="radio" name="views">
 
 		<!-- One checkbox per view -->
 		{{inputCheckbox}}
 
-		<!-- Report eally starts here with the sidebar -->
+		<!-- SVG diagram symbol definitions (hidden, referenced by each view) -->
+		<svg style="display:none" aria-hidden="true">{{svgDefs}}</svg>
+
+		<!-- Report really starts here with the sidebar -->
 		<aside class="sidebar">
-			<label for="sidebar" id="hide-sidebar" class="icon close"></label>
+			<header class="top-header">
+				<span>{{labels.sidebarTitle}}</span>
+				<label for="sidebar" id="hide-sidebar" class="icon close"></label>
+			</header>
 			<nav class="secondary">
-				<header class="top-header">
-					<span>Tartalom</span>
-				</header>
 				<div class="tree">
+					<label for="show-all-views" class="entire-model">{{labels.allViews}}</label>
 					{{treeContent}}
 				</div>
 			</nav>
@@ -45,10 +50,22 @@ Original Work Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie - MIT
 			{{views}}
 		</main>
 
+		{{scriptTag}}
 		<script>
 			// If javascript is enabled (ie. this report is NOT opened from
 			// within SharePoint or OneDrive), let's check 'javascript' input
 			document.getElementById("javascript").checked = true;
+
+			document.querySelectorAll('.diagram').forEach(function(svg) {
+				var pz = Panzoom(svg, { maxScale: 8 });
+				var scroll = svg.parentElement;
+				svg.addEventListener('wheel', pz.zoomWithWheel);
+
+				var btns = scroll.querySelectorAll('.zoom-btn');
+				btns[0].addEventListener('click', function() { pz.zoomIn(); });
+				btns[1].addEventListener('click', function() { pz.zoomOut(); });
+				btns[2].addEventListener('click', function() { pz.reset(); });
+			});
 		</script>
 	</body>
 </html>

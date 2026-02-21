@@ -1,9 +1,15 @@
 {
+  "scripts": {
+    "postinstall": "cp node_modules/@panzoom/panzoom/dist/panzoom.min.js resources/panzoom.min.js && cp node_modules/marked/marked.min.js libs/marked.min.js && cp node_modules/underscore/underscore-min.js libs/underscore-min.js"
+  },
   "dependencies": {
     "picnic": "^7.1.0"
   },
   "devDependencies": {
+    "@panzoom/panzoom": "^4.6.1",
     "eslint": "^9.39.2",
-    "globals": "^17.0.0"
+    "globals": "^17.0.0",
+    "marked": "^4.3.0",
+    "underscore": "^1.13.8"
   }
 }

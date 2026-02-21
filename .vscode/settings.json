@@ -12,9 +12,21 @@
     "source.fixAll.eslint": "explicit"
   },
 
+  // Prettier
+  "prettier.printWidth": 120,
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "none",
+  "prettier.semi": true,
+
+  // Stylelint
   "css.validate": false,
   "stylelint.enable": true,
+  "stylelint.config": {
+    "extends": "stylelint-config-standard",
+    "rules": {
+      "rule-empty-line-before": ["always", { "except": ["first-nested"], "ignore": ["after-comment"] }]
+    }
+  },
 
-  // (Optional) Do not auto-format on save if you want full manual control
   "editor.formatOnSave": false
 }

@@ -18,7 +18,6 @@ module.exports = [
           _: "readonly",
           $: "readonly",
           marked: "readonly",
-          mdOptions: "readonly",
           selection: "readonly",
           model: "readonly",
           console: "readonly",

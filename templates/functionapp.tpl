@@ -10,8 +10,8 @@
 	<table class="full fixed functions-table indented">
 	<thead>
 		<tr>
-		<th class="third">Név
-		<th class="two-third">Leírás
+		<th class="third">{{labels.colName}}
+		<th class="two-third">{{labels.colDescription}}
 		<tbody>
 			{{functions_html}}
 	</table>

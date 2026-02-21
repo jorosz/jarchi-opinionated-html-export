@@ -1,4 +1,4 @@
-// Updated Generate Single-page HTML Export
+// Updated Generate Multi-page HTML Export
 // Copyright (c) 2026 J Orosz
 //
 // Permission is hereby granted, free of charge, to any person
@@ -35,39 +35,15 @@ _.templateSettings = {
   evaluate: /<%([\s\S]+?)%>/g
 };
 
-const File = Java.type('java.io.File');
-const cssFile = new File(__DIR__ + '/main.css');
-const cssAbsolutePath = 'file://' + cssFile.getAbsolutePath();
-const myCSS = readFully(__DIR__ + '/main.css', 'UTF-8');
-
-// Set Markdown rendering options
-const renderer = new marked.Renderer();
-renderer.heading = function (text, level) {
-  return '<p>' + text + '</p>\n';
-};
-
-var mdOptions = {
-  gfm: true,
-  breaks: false,
-  smartLists: true,
-  smartypants: true,
-  renderer: renderer
-};
-
-var roboto = readFully(__DIR__ + 'resources/roboto.css', 'UTF-8');
-var icon = readFully(__DIR__ + 'resources/icon.css', 'UTF-8');
-var picnic = readFully(__DIR__ + 'resources/picnic-custom.css', 'UTF-8');
-
-var allStyles = [/*roboto,*/ icon, picnic, myCSS].join('\n\n'); // Roboto is removed to use system font
-var styleTag = '<style>\n' + allStyles + '\n</style>';
-
-var tplMainReport = _.template(readFully(__DIR__ + 'templates/single-page-report.html', 'UTF-8'));
-var tplView = _.template(readFully(__DIR__ + 'templates/view.tpl', 'UTF-8'));
-var tplFunction = _.template(readFully(__DIR__ + 'templates/function.tpl', 'UTF-8'));
-var tplFunctionApp = _.template(readFully(__DIR__ + 'templates/functionapp.tpl', 'UTF-8'));
-var tplRelationship = _.template(readFully(__DIR__ + 'templates/relationship.tpl', 'UTF-8'));
-
-var viewCollection = []; // this list will contain all the objects representing each view
+const common = require(__DIR__ + 'libs/export-common.js');
+const labels = JSON.parse(readFully(__DIR__ + 'templates/labels.json', 'UTF-8'));
+const styles = common.loadStyles(__DIR__);
+const scripts = common.loadScripts(__DIR__);
+var tplView         = common.loadTemplate(__DIR__, labels, 'view.tpl');
+var tplFunction     = common.loadTemplate(__DIR__, labels, 'function.tpl');
+var tplFunctionApp  = common.loadTemplate(__DIR__, labels, 'functionapp.tpl');
+var tplRelationship = common.loadTemplate(__DIR__, labels, 'relationship.tpl');
+var tplMainReport   = common.loadTemplate(__DIR__, labels, 'single-page-report.html');
 
 const viewsFolder = $(model).children().filter('folder.Views');
 let folders = $(selection).filter((item) => {
@@ -79,7 +55,7 @@ if (!folders.size()) {
   console.log('All views have been selected.');
 }
 
-// Pick a folder
+// Pick output folder
 const DirectoryDialog = Java.type('org.eclipse.swt.widgets.DirectoryDialog');
 const shell = workbenchwindow.getShell();
 let dialog = new DirectoryDialog(shell);
@@ -90,164 +66,32 @@ if (!folderPath) {
   console.log('User cancelled directory selection');
   exit();
 } else {
-    console.log("Exporting to "+folderPath);
+  console.log('Exporting to ' + folderPath);
 }
 
-_.chain(folders)
-  .sortBy((f) => f.name)
-  .each((f) => {
-    exportViews(f);
-  });
+// Collect all view data
+var views = common.collectViews(folders);
+var viewCollection = common.collectViewData(views);
 
-// TODO: this ugly recursion with a closure should probably also be fixed at one point
-function exportViews(folder) {
-  console.log('Exporting "', folder.name, '"...');
+// Render HTML content into each view
+common.renderViewCollection(viewCollection, { tplRelationship, tplFunction, tplFunctionApp });
 
-  _.chain($(folder).children('folder'))
-    .sortBy((f) => f.name)
-    .each((f) => {
-      exportViews(f); // does the ugly recursion to progress subfolders
-    });
-
-  // loop through the views and collect data
-  _.chain($(folder).children('view'))
-    .sortBy((v) => v.name)
-    .each((v) => {
-      const svgString = $.model.renderViewAsSVGString(v, { embedFonts: false });
-
-      // this will store our data for the view
-      let viewData = {
-        viewId: v.id,
-        viewName: _.escape(v.name),
-        diagram: $.model.renderViewAsBase64(v, 'SVG'),
-        svg: svgString, // tried SVG but not better
-        documentation: marked(v.documentation || '', mdOptions),
-        functions: [], // will hold the list of functions (raw data)
-        components: [], // will hold the data for each component
-        apps_html: '', // stores rendered data for apps and functions
-        flows: [],
-        flows_html: '',
-        checked: '' // no need for this in the single page view
-      };
-
-      // Update lists of functional elements
-      // need all application-functions so that we can put them into a map to be sorted by component
-      // populates the list of functions in the viewData
-      $(v)
-        .find('application-function')
-        .each(function (fun) {
-          let ec = $(fun.concept);
-          // determine where this function is linked to
-          let appComponent = ec.inRels('realization-relationship').sourceEnds().filter('application-component').first();
-          let fObj = {
-            name: _.escape(fun.name),
-            id: fun.id,
-            applicationName: appComponent ? appComponent.name : 'N/A',
-            applicationID: appComponent ? appComponent.id : 'default',
-            documentation: marked(fun.documentation || '', mdOptions)
-          };
-
-          viewData.functions.push(fObj);
-          console.log(fun + ' => ' + fObj.applicationName + ' ' + fObj.applicationID);
-        });
-
-      // iterate application components and build the list
-      // select all functions for each application from the previously populated list
-      $(v)
-        .find('application-component')
-        .each((app) => {
-          // need the concept not the one on the diagram for ID
-          let appC = app.concept;
-
-          console.log(app + ' ' + app.id + ' ' + appC.id);
-          let aObj = {
-            appName: app.name,
-            appDescription: marked(app.documentation || '', mdOptions),
-            appID: appC.id,
-
-            // next one filters functions for this application into functions
-            functions: _.where(viewData.functions || [], {
-              applicationID: appC.id
-            }),
-            functions_html: 'placeholder for generated html'
-          };
-          viewData.components.push(aObj);
-        });
-
-      // collect flow relationships
-      $(v)
-        .find('flow-relationship')
-        .each((r) => {
-          let fwObj = {
-            relationshipName: _.escape(r.name),
-            relationshipType: properCase(r.type),
-            relationshipSource: _.escape(r.source.name),
-            relationshipTarget: _.escape(r.target.name),
-            relationshipDocumentationText: _.escape(r.documentation).replace(/\n/g, '<br>'),
-            relationshipDocumentationMarkdown: marked(r.documentation || '', mdOptions)
-          };
-          viewData.flows.push(fwObj);
-        });
-
-      viewCollection.push(viewData); // TODO: make this function return a value instead
-    }); // view loop
-} // export views function
-
-// now we populate the html portions for each section
-
-// loop views and populate data
+// Write one file per view
 _(viewCollection).each((v) => {
-  // map the flows
-  let flow_html = _.chain(v.flows || [])
-    .sortBy((f) => f.relationshipName)
-    .map((f) => {
-      return f.relationshipName ? tplRelationship(f) || '' : ''; // does not print flows with no name
-    })
-    .join('\n')
-    .value();
-
-  // map the apps and functions
-  let app_html = _.chain(v.components || [])
-    .sortBy((a) => a.appName)
-    .map((app) => {
-      // inside the app we map the function
-      app.functions_html = _.chain(app.functions || [])
-        .sortBy((f) => f.name)
-        .map((fun) => {
-          return tplFunction(fun) || '';
-        })
-        .join('')
-        .value();
-
-      return tplFunctionApp(app) || '';
-    })
-    .join('')
-    .value();
-
-  v.flows_html = flow_html;
-  v.apps_html = app_html;
-
-  // make the HTML
+  const svgDefs = '<symbol id="diagram-' + v.viewId + '" viewBox="' + v.svgViewBox + '">\n' + v.svgInner + '\n</symbol>';
   const viewReport = tplMainReport({
-    modelTitle: _.escape(model.name) + " - " + _.escape(v.viewName),
-    styleTag: styleTag,
+    modelTitle: _.escape(model.name) + ' - ' + _.escape(v.viewName),
+    styleTag: styles.styleTag,
+    scriptTag: scripts.scriptTag,
     views: tplView(v),
-    cssAbsolutePath: cssAbsolutePath,
+    svgDefs: svgDefs,
+    cssAbsolutePath: styles.cssAbsolutePath,
+    labels: labels
   });
 
-  const filePath = folderPath + "/" + _.escape(model.name) + '_' + _.escape(v.viewName) + '.html';
-
-  console.log("Exporting view " + v.viewName + " to "+filePath);
+  const filePath = folderPath + '/' + _.escape(model.name) + '-' + _.escape(v.viewName) + '.html';
+  console.log('Exporting view ' + v.viewName + ' to ' + filePath);
   $.fs.writeFile(filePath, viewReport, 'UTF-8');
-}); // view processing
+});
 
 console.log('Export completed.');
-
-
-function properCase(str) {
-  return str
-    .replace(/\w*/g, function (txt) {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    })
-    .replace('-', ' ');
-}

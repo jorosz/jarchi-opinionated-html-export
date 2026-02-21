@@ -19,13 +19,6 @@
   --table-row: #fafafa;
 }
 
-/* Generic style */
-/* 		  body {
-			  font-family: 'Roboto';
-			  margin: 0; 							** needed for Sharepoint/OneDrive preview **
-		  }
- */
-
 label {
   cursor: pointer;
 }
@@ -139,6 +132,15 @@ input[name="views"]:not(:checked) ~ * .views 		  /* should fix hiding of views n
   display: none;
 }
 
+/* Show all views — ID selector gives specificity (1,2,0), beating the hide rule (0,3,1) above */
+#show-all-views:checked ~ * .views {
+  display: block;
+}
+
+#show-all-views:checked ~ * label[for='show-all-views'] {
+  font-weight: 700;
+}
+
 /* Expandable Behavior */
 .expandable {
   width: 100%; /* by default use full width */
@@ -158,21 +160,32 @@ input[name="views"]:not(:checked) ~ * .views 		  /* should fix hiding of views n
   background-color: var(--sidebar-bg-color);
   color: var(--sidebar-color);
   width: var(--sidebar-width);
+  left: calc(-1 * var(--sidebar-width)); /* hidden off-screen by default */
+  transition: left 0.3s;
+}
+
+#sidebar:checked ~ .sidebar {
+  left: 0; /* slide in when checkbox is checked */
+}
+
+.sidebar .top-header {
+  /* The sidebar is already position:fixed, so children must NOT be fixed too —
+     a nested position:fixed escapes to viewport coordinates and covers the button */
+  position: relative;
+  width: 100%;
 }
 
 #hide-sidebar {
-  position: absolute; /* close button is fixed so that any header can go below */
-  top: 8px; /* (header-height - icon-heigh) / 2 */
-  /* visual space inside icon (~10px) should be taken into account so
-				   we remove it from right margin  */
-  right: calc(var(--main-margin) - 10px);
+  /* push close button to the right edge inside the flex header */
+  margin-left: auto;
+  margin-right: calc(var(--main-margin) - 10px);
 }
 
 .sidebar nav.secondary {
   height: calc(100% - var(--header-height) - var(--sidebar-footer-height));
   overflow: auto; /* we want scrollbar in main sidebar navs */
   padding: 0 var(--sidebar-margin);
-  margin-top: var(--header-height);
+  /* no margin-top needed: header is now in normal flow, not position:fixed */
 }
 .sidebar nav.primary {
   position: fixed; /* our footer is fixed on the bottom */
@@ -219,7 +232,7 @@ input[name="views"]:not(:checked) ~ * .views 		  /* should fix hiding of views n
   height: var(--header-height);
   display: flex;
   align-items: center;
-  width: 100%; /* TODO */
+  width: 100%;
 }
 
 /* text inside top-header = titles */
@@ -270,13 +283,11 @@ input[name="views"]:not(:checked) ~ * .views 		  /* should fix hiding of views n
 }
 
 main {
-  /* Todo: check if similar behavior is obtained
-		  	   without position:fixed and overflow:auto */
   position: fixed; /* Make it stick, even on scroll */
   top: var(--header-height); /* Same as top-header's height */
   overflow: auto; /* we want scrollbar in main section */
-  width: 100%; /* Todo: really needed? */
-  height: calc(100% - var(--header-height)); /* Todo: really needed? */
+  width: 100%;
+  height: calc(100% - var(--header-height));
   background-color: var(--main-bg-color);
   color: var(--main-color);
   padding: var(--main-margin);
@@ -299,10 +310,60 @@ article header * {
   margin-block-start: 0.5em;
 }
 
-.views img,
-.views svg {
+.views img {
+  height: auto;
   max-width: 100%;
-  margin-top: var(--main-margin); /* only set top margin because bottom is set by tabs */
+  margin-top: var(--main-margin);
+}
+
+.diagram-scroll {
+  position: relative;
+  overflow: hidden;
+  margin-top: var(--main-margin);
+  padding-left: 36px;
+}
+
+.diagram-controls {
+  position: absolute;
+  left: 4px;
+  top: 8px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.zoom-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.zoom-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(0, 0, 0, 0.4);
+}
+
+.diagram-scroll svg {
+  display: block;
+  height: auto;
+  position: relative;
+  z-index: 0;
+  cursor: grab;
+}
+
+.diagram-scroll svg:active {
+  cursor: grabbing;
 }
 
 /* Tree */
@@ -404,4 +465,40 @@ div.indented + table.indented {
 
 article h4 {
   padding-top: 1.1em;
+}
+
+@media print {
+  .top-header,
+  .sidebar {
+    display: none;
+  }
+
+  main {
+    position: static;
+    top: 0;
+    height: auto;
+    overflow: visible;
+    width: 100%;
+  }
+
+  .expandable {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .diagram-scroll {
+    overflow: visible;
+    padding-left: 0;
+  }
+
+  .diagram-controls {
+    display: none;
+  }
+
+  .diagram-scroll svg {
+    transform: none !important;
+    width: 100% !important;
+    height: auto !important;
+    cursor: default;
+  }
 }
