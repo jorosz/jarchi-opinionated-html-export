@@ -1,0 +1,287 @@
+// Updated Generate Single-page HTML Export
+// Copyright (c) 2026 J Orosz
+// Original Version Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+// Set this to false for jArchi 1.6.0 and below or if the Archi preference "Enable Common JS support" is off
+// See https://github.com/archimatetool/archi-scripting-plugin/wiki/Using-Node.js-modules
+load(__DIR__ + 'libs/nashorn-polyfills.js');
+
+_ = require(__DIR__ + 'libs/underscore-min.js');
+marked = require(__DIR__ + 'libs/marked.min.js');
+
+console.show();
+console.clear();
+
+// Use Mustache.js-style templating
+_.templateSettings = {
+  interpolate: /\{\{(.+?)\}\}/g,
+  evaluate: /<%([\s\S]+?)%>/g
+};
+
+const File = Java.type('java.io.File');
+const cssFile = new File(__DIR__ + '/main.css');
+const cssAbsolutePath = 'file://' + cssFile.getAbsolutePath();
+const myCSS = readFully(__DIR__ + '/main.css', 'UTF-8');
+
+// Set Markdown rendering options
+const renderer = new marked.Renderer();
+renderer.heading = function (text, level) {
+  return '<p>' + text + '</p>\n';
+};
+
+var mdOptions = {
+  gfm: true,
+  breaks: false,
+  smartLists: true,
+  smartypants: true,
+  renderer: renderer
+};
+
+var roboto = readFully(__DIR__ + 'resources/roboto.css', 'UTF-8');
+var icon = readFully(__DIR__ + 'resources/icon.css', 'UTF-8');
+var picnic = readFully(__DIR__ + 'resources/picnic-custom.css', 'UTF-8');
+
+var allStyles = [/*roboto,*/ icon, picnic, myCSS].join('\n\n'); // Roboto is removed to use system font
+var styleTag = '<style>\n' + allStyles + '\n</style>';
+
+var tplMainReport = _.template(readFully(__DIR__ + 'templates/main-report.html', 'UTF-8'));
+var tplVisibilityRules = _.template(readFully(__DIR__ + 'templates/visibility-rule.tpl', 'UTF-8'));
+var tplInputCheckbox = _.template(readFully(__DIR__ + 'templates/input-checkbox.tpl', 'UTF-8'));
+var tplTreeView = _.template(readFully(__DIR__ + 'templates/model-tree-view.tpl', 'UTF-8'));
+
+var tplView = _.template(readFully(__DIR__ + 'templates/view.tpl', 'UTF-8'));
+
+var tplFunction = _.template(readFully(__DIR__ + 'templates/function.tpl', 'UTF-8'));
+var tplFunctionApp = _.template(readFully(__DIR__ + 'templates/functionapp.tpl', 'UTF-8'));
+var tplRelationship = _.template(readFully(__DIR__ + 'templates/relationship.tpl', 'UTF-8'));
+
+var inputCheckbox = '';
+var treeContent = '';
+var viewCollection = []; // this list will contain all the objects representing each view
+
+var allFolders = $('folder');
+var viewsFolder = $(model).children().filter('folder.Views');
+var viewFolders = viewsFolder.find('folder');
+var nonViewFolders = allFolders.not(viewsFolder).not(viewFolders);
+var folders = selection.filter('folder').not(nonViewFolders); // TODO: could also support views in the selection to save a single view
+
+if (!folders.size()) {
+  folders = viewsFolder;
+  console.log('All views have been selected.');
+}
+
+var yyyymmdd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+var filePath = window.promptSaveFile({
+  title: 'Save as HTML file',
+  filterExtensions: ['*.html', '*.*'],
+  fileName: model.name +'-'+ yyyymmdd + '.html'
+});
+
+if (!filePath) {
+  console.log('User cancelled.');
+  exit();
+}
+
+_.chain(folders)
+  .sortBy((f) => f.name)
+  .each((f) => {
+    exportViews(f);
+  });
+
+// TODO: this ugly recursion with a closure should probably also be fixed at one point
+function exportViews(folder) {
+  console.log('Exporting "', folder.name, '"...');
+  var previousContent = treeContent;
+  treeContent = '';
+
+  _.chain($(folder).children('folder'))
+    .sortBy((f) => f.name)
+    .each((f) => {
+      exportViews(f); // does the ugly recursion to progress subfolders
+    });
+
+  // loop through the views and collect data
+  let isFirst = true;
+  _.chain($(folder).children('view'))
+    .sortBy((v) => v.name)
+    .each((v) => {
+      const svgString = $.model.renderViewAsSVGString(v, {embedFonts: false});
+
+      // this will store our data for the view
+      let viewData = {
+        viewId: v.id,
+        viewName: _.escape(v.name),
+        diagram: $.model.renderViewAsBase64(v, 'SVG'),
+        svg: svgString, // tried SVG but not better
+        documentation: marked(v.documentation || '', mdOptions),
+        functions: [], // will hold the list of functions (raw data)
+        components: [], // will hold the data for each component
+        apps_html: '', // stores rendered data for apps and functions
+        flows: [],
+        flows_html: '',
+        checked: isFirst ? 'checked' : '' // triggers show/hide for checked
+      };
+
+      isFirst = false;
+
+      // tree and show-hide logic generation
+      inputCheckbox += tplInputCheckbox(viewData);
+      treeContent += tplTreeView(viewData);
+      styleTag += tplVisibilityRules(viewData);
+
+      // Update lists of functional elements
+      // need all application-functions so that we can put them into a map to be sorted by component
+      // populates the list of functions in the viewData
+      $(v)
+        .find('application-function')
+        .each(function (fun) {
+          let ec = $(fun.concept);
+          // determine where this function is linked to
+          let appComponent = ec.inRels('realization-relationship').sourceEnds().filter('application-component').first();
+          let fObj = {
+            name: _.escape(fun.name),
+            id: fun.id,
+            applicationName: appComponent ? appComponent.name : 'N/A',
+            applicationID: appComponent ? appComponent.id : 'default',
+            documentation: marked(ec.documentation || '', mdOptions)
+          };
+
+          viewData.functions.push(fObj);
+          console.log(fun+" => "+fObj.applicationName+" "+fObj.applicationID);
+        });
+
+      // iterate application components and build the list
+      // select all functions for each application from the previously populated list
+      $(v)
+        .find('application-component')
+        .each((app) => {
+          // need the concept not the one on the diagram for ID
+          let appC = app.concept;
+
+          console.log(app + ' ' + app.id + ' ' + appC.id);
+          let aObj = {
+            appName: app.name,
+            appDescription: marked(app.documentation || '', mdOptions),
+            appID: appC.id,
+
+            // next one filters functions for this application into functions
+            functions: _.where(viewData.functions || [], {
+              applicationID: appC.id
+            }),
+            functions_html: 'placeholder for generated html'
+          };
+          viewData.components.push(aObj);
+        });
+
+      // collect flow relationships
+      $(v)
+        .find('flow-relationship')
+        .each((r) => {
+          let fwObj = {
+            relationshipName: _.escape(r.name),
+            relationshipType: properCase(r.type),
+            relationshipSource: _.escape(r.source.name),
+            relationshipTarget: _.escape(r.target.name),
+            relationshipDocumentationText: _.escape(r.documentation).replace(/\n/g, '<br>'),
+            relationshipDocumentationMarkdown: marked(r.documentation || '', mdOptions)
+          };
+          viewData.flows.push(fwObj);
+        });
+
+      viewCollection.push(viewData);
+    }); // view loop
+
+  treeContent = previousContent + treeContent;
+} // export views function
+
+// now we populate the html portions for each section
+
+// loop views and populate data
+_(viewCollection).each((v) => {
+  // map the flows
+  let flow_html = _.chain(v.flows || [])
+    .sortBy(f => f.relationshipName)
+    .map((f) => {
+      return f.relationshipName ? tplRelationship(f) || '' : ''; // does not print flows with no name
+    })
+    .join('\n')
+    .value();
+
+  // map the apps and functions
+  let app_html = _.chain(v.components || [])
+    .sortBy(a => a.appName)
+    .map((app) => {
+
+      // inside the app we map the function
+      app.functions_html = _.chain(app.functions || [])
+        .sortBy(f => f.name)
+        .map((fun) => {
+          return tplFunction(fun) || '';
+        })
+        .join('')
+        .value();
+
+      return tplFunctionApp(app) || '';
+    })
+    .join('')
+    .value();
+
+  v.flows_html = flow_html;
+  v.apps_html = app_html;
+});
+
+// apply view template to get the views html
+let views_html = _(viewCollection)
+  .map((v) => {
+    return tplView(v) || '';
+  })
+  .join('');
+
+// render visibility rules
+
+let mainReport = tplMainReport({
+  roboto: roboto,
+  icon: icon,
+  picnic: picnic,
+  modelTitle: _.escape(model.name),
+  modelPurposeText: _.escape(model.purpose).replace(/\n/g, '<br>'),
+  modelPurposeMarkdown: marked(model.purpose || '', mdOptions),
+  styleTag: styleTag,
+  inputCheckbox: inputCheckbox,
+  treeContent: treeContent,
+  views: views_html,
+  cssAbsolutePath: cssAbsolutePath
+});
+
+$.fs.writeFile(filePath, mainReport, 'UTF-8');
+
+console.log('Export terminated.');
+
+function properCase(str) {
+  return str
+    .replace(/\w*/g, function (txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    })
+    .replace('-', ' ');
+}

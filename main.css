@@ -1,0 +1,406 @@
+/* Application wide configuration - now using CSS variables considering IE11 is DEAD finally */
+:root {
+  --sidebar-bg-color: #002b1e;
+  --sidebar-color: #dddddd;
+  --sidebar-width: 350px;
+  --sidebar-margin: 10px;
+  --sidebar-footer-height: 0px;
+  --header-height: 60px;
+  --header-color: #fff;
+  --main-bg-color: #fff;
+  --main-color: #000;
+  --main-margin: 20px;
+  --main-header-margin: 35px;
+  --main-header-color: #546e7a;
+  --primary: #01835b;
+  --header-bg-color: var(--primary);
+  --main-header-bg-color: #fff;
+  --table-header: #b9eacc;
+  --table-row: #fafafa;
+}
+
+/* Generic style */
+/* 		  body {
+			  font-family: 'Roboto';
+			  margin: 0; 							** needed for Sharepoint/OneDrive preview **
+		  }
+ */
+
+label {
+  cursor: pointer;
+}
+
+/* Utilities */
+.right {
+  float: right;
+}
+.left {
+  float: left;
+}
+.text-right {
+  text-align: right;
+}
+.spacer {
+  /* Used only inside a "flex" container */
+  margin-right: auto;
+  margin-left: auto;
+}
+table.fixed {
+  table-layout: fixed;
+}
+
+/* Icons */
+.icon {
+  font-family: 'Icon'; /* 'Icon' font is based on a FontAwesome subset */
+  font-size: 27px; /* main size of the icon, can be overriden */
+  height: 1.7em; /* make it square */
+  width: 1.7em; /* make it square */
+  font-style: normal; /* needed if <i> tags are used */
+  text-align: center; /* icon is centered */
+  line-height: 1.7; /* line height might have to be fine-tuned */
+  display: inline-block; /* we want icons as blocks, but inline */
+}
+.icon:hover {
+  background: #ffffff3d; /* light background on hover */
+  border-radius: 50%; /* round background */
+}
+/* icon font uses ligature which makes it easier to select icon */
+.icon.menu::before {
+  content: '\f0c9';
+} /* navicon */
+.icon.close::before {
+  content: '\f00d';
+} /* close */
+.icon.gear::before {
+  content: '\f013';
+} /* cog */
+.icon.book::before {
+  content: '\f02d';
+} /* book */
+.icon.table::before {
+  content: '\f0ce';
+} /* table */
+.icon.chart::before {
+  content: '\f080';
+} /* bar-chart */
+
+/* Override some Picnic defaults */
+/* Picnic Tabs */
+.tabs {
+  margin-top: var(--main-margin); /* set some space above tabs */
+  text-align: center; /* center tabs' headers */
+}
+.tabs > input + label {
+  padding: 0 25px 18px 25px; /* set some space between tabs' headers and below*/
+  text-transform: uppercase; /* tabs' headers are uppercase */
+  color: #aaaaaa; /* non selected tabs' headers color */
+}
+.tabs > input:checked + label {
+  color: #666666; /* selected tab's header color */
+  border-bottom: 2px solid #0074d9; /* selected tab's header has a blue bottom border */
+}
+.tabs > .row {
+  text-align: left; /* tabs' content is left aligned (needed because tabs are centered) */
+  margin-top: 18px; /* must be equal to tabs' header bottom padding */
+  padding-top: 25px; /* set some space above tabs' content */
+  border-top: 1px solid #e0e0e0; /* draw a line between tabs' headers and tabs' content */
+  transition: none; /* no transition */
+}
+/* Picnic Tables */
+table {
+  /* set borders (other border are managed at cell level) */
+  border-left: 1px solid #dddddd;
+  border-top: 1px solid #dddddd;
+}
+
+th {
+  background: var(--table-header);
+  font-weight: 700;
+  color: #666666;
+}
+
+tr:nth-child(even) {
+  background: var(--table-row);
+}
+
+th,
+td {
+  /* set borders (other border are managed at table level) */
+  border-right: 1px solid #dddddd;
+  border-bottom: 1px solid #dddddd;
+}
+
+/* Navigation Behavior */
+input[name="views"]:not(:checked) ~ * .views 		  /* should fix hiding of views no need for hidden */
+		  , #javascript:not(:checked) ~ * .js-only
+		  /* is mardown enabled? */
+		  , #markdown:checked ~ * .txt
+		  , #markdown:not(:checked) ~ * .md {
+  display: none;
+}
+
+/* Expandable Behavior */
+.expandable {
+  width: 100%; /* by default use full width */
+  transition: all 0.3s; /* make switching state a bit fun */
+}
+
+#sidebar:checked ~ .expandable {
+  margin-left: var(--sidebar-width); /* add some space for sidebar */
+  width: calc(100% - var(--sidebar-width)); /* reset width */
+}
+
+/* Sidebar Style */
+.sidebar {
+  position: fixed; /* make it stick, even on scroll */
+  top: 0; /* stick to top */
+  height: 100%; /* takes all vertical space */
+  background-color: var(--sidebar-bg-color);
+  color: var(--sidebar-color);
+  width: var(--sidebar-width);
+}
+
+#hide-sidebar {
+  position: absolute; /* close button is fixed so that any header can go below */
+  top: 8px; /* (header-height - icon-heigh) / 2 */
+  /* visual space inside icon (~10px) should be taken into account so
+				   we remove it from right margin  */
+  right: calc(var(--main-margin) - 10px);
+}
+
+.sidebar nav.secondary {
+  height: calc(100% - var(--header-height) - var(--sidebar-footer-height));
+  overflow: auto; /* we want scrollbar in main sidebar navs */
+  padding: 0 var(--sidebar-margin);
+  margin-top: var(--header-height);
+}
+.sidebar nav.primary {
+  position: fixed; /* our footer is fixed on the bottom */
+  bottom: 0;
+  height: var(--sidebar-footer-height);
+  width: var(--sidebar-width);
+  text-align: center;
+  background: #00000033; /* use transparency for darker background */
+  display: flex; /* this is the trick to middle align buttons and title */
+}
+.sidebar nav.primary > * {
+  display: inline-block; /* block (to set height/width) and inline (no newline on <h>) */
+  margin-top: auto; /* magic happens... */
+  margin-bottom: auto; /* ...here */
+  color: #aaaaaa; /* default icon color is graker */
+}
+
+#views:checked ~ * nav.primary > label[for='views'],
+#queries:checked ~ * nav.primary > label[for='queries'],
+#dataviz:checked ~ * nav.primary > label[for='dataviz'] {
+  color: var(--sidebar-color);
+}
+
+.sidebar ::-webkit-scrollbar {
+  width: 10px; /* thin but not too much */
+}
+
+.sidebar ::-webkit-scrollbar-track {
+  background: #ffffff22; /* scrollbar track is lighter than background */
+}
+
+.sidebar ::-webkit-scrollbar-thumb {
+  background: #00000088; /* thumb is darker than background */
+}
+
+.sidebar ::-webkit-scrollbar-thumb:hover {
+  background: #000000dd; /* on hover, thums is even more darker */
+}
+
+/* Common Top Header Style */
+.top-header {
+  position: fixed; /* headers are fixed on top */
+  top: 0;
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+}
+
+/* text inside top-header = titles */
+.top-header span {
+  font-size: calc(var(--header-height) - 30px);
+
+}
+
+/* Main-Header Style */
+#main-header {
+  display: flex; /* this is the trick to middle align buttons and title */
+}
+
+#main-header > * {
+  display: inline-block; /* block (to set height/width) and inline (no newline on <h>) */
+  margin-top: auto; /* magic happens... */
+  margin-bottom: auto; /* ...here */
+}
+
+#show-sidebar {
+  /* visual space inside icon (~10px) should be taken into account so
+				   we remove it from left margin and we set a negative right margin */
+  margin-left: calc(var(--main-margin) - 10px);
+  margin-right: calc(-1 * var(--main-margin)); 
+}
+
+#sidebar:checked ~ * #show-sidebar {
+  display: none;
+}
+
+.title {
+  /* use same margin as main. works in both cases (opened/closed)
+				   only because 'show-sidebar' icon has a negative right margin */
+  margin-left: var(--main-margin);
+/*  padding: 0px var(--sidebar-margin); */
+}
+
+#show-preferences {
+  /* visual space inside icon (~10px) should be taken into account so
+				   we remove it from right margin */
+  margin-right: calc(var(--main-margin) - 10px);
+}
+
+/* Main-section Style */
+#main-header {
+  background-color: var(--header-bg-color);
+  color: var(--header-color);
+}
+
+main {
+  /* Todo: check if similar behavior is obtained
+		  	   without position:fixed and overflow:auto */
+  position: fixed; /* Make it stick, even on scroll */
+  top: var(--header-height); /* Same as top-header's height */
+  overflow: auto; /* we want scrollbar in main section */
+  width: 100%; /* Todo: really needed? */
+  height: calc(100% - var(--header-height)); /* Todo: really needed? */
+  background-color: var(--main-bg-color);
+  color: var(--main-color);
+  padding: var(--main-margin);
+  padding-top: 0;
+}
+
+/* Main Content */
+article header {
+  /* 				margin: 0 calc(-1 * var(--main-margin));
+				padding: var(--main-header-margin) var(--main-margin);
+ */
+  background-color: var(--main-header-bg-color);
+  color: var(--main-header-color);
+  font-size: 0.8em;
+}
+article header * {
+  /* hide/reveal rules use display:table-row which suppress margins and padding.
+		  	   simulating this on other headers to get a similar rendering */
+  margin-block-end: 0.5em;
+  margin-block-start: 0.5em;
+}
+
+.views img,
+.views svg {
+  max-width: 100%;
+  margin-top: var(--main-margin); /* only set top margin because bottom is set by tabs */
+}
+
+/* Tree */
+div.tree {
+  /* Unfortunately IE11 doesn't support CSS vars, so values will be forced through templating system
+			   When supporting IE11 will be out of scope, it will be possible to revert to CSS vars */
+  /*--tree-margin: 1.3em;*/ /* is equal to the icon width with a small additional space */
+  padding-left: var(--tree-margin);
+  font-size: 1em; /* use a slightly smaller font */
+  line-height: 1.2em; /* use a smaller line-height (but add spacing between labels) */
+}
+div.tree input:not(:checked) + * + div {
+  display: none; /* hide folder content when not checked */
+}
+div.tree div {
+  padding-left: var(--tree-margin);
+}
+div.tree label {
+  display: block; /* folders and views' name should start on a new line */
+  margin-bottom: 0.3em; /* add space between labels */
+}
+div.tree label::before {
+  font-family: 'Icon'; /* let's add some space on left for an icon */
+  font-weight: normal; /* should not be impacted by bold (selected) label */
+  display: inline-block; /* needed to set its width */
+  margin-left: calc(-1 * var(--tree-margin));
+  width: var(--tree-margin);
+}
+div.tree label.folder::before {
+  content: '\f07b'; /* folder */
+  color: #ffc73f; /* orange taken from original Archi folder icon */
+}
+div.tree input:checked + label.folder::before {
+  content: '\f07c'; /* folder-open */
+}
+div.tree label.view::before {
+  content: '\f1e1'; /* share-alt-square (that's the best I found to suggest a view) */
+  color: #65a8e3; /* blue taken from original Archi view icon */
+  margin-right: 8px;
+}
+
+div.tree label.entire-model::before {
+  content: '\f0e8'; /* share-alt-square (that's the best I found to suggest a view) */
+  color: #65a8e3; /* blue taken from original Archi view icon */
+}
+
+/* Toggle Switch */
+label.switch::before {
+  font-family: 'Icon'; /* use icon font */
+  font-size: 35px; /* seems to be just right */
+  margin-top: -0.3em; /* provide the best rendering so far */
+  display: inline-block; /* needed for transform to work */
+  color: #dddddd; /* light grey */
+  transform: rotate(180deg); /* when off, the toggle icon is reversed */
+  content: '\f205'; /* 'toggle-on' from FontAwesome */
+  transition: color 0.1s;
+}
+
+input:checked ~ label.switch::before,
+#markdown:checked ~ * label.switch[for='markdown']::before {
+  transform: rotate(0deg); /* when on, the toggle icon is used as-is */
+  color: var(--header-bg-color); /* use the main accent color */
+}
+
+hr {
+  height: 1px;
+  background: #ccc;
+  border: none;
+  margin: 20px 0;
+  opacity: 0.3;
+}
+
+article h3 {
+  border-top: 1px solid #ccc;
+  margin-top: 20px;
+  padding-top: 10px;
+}
+
+
+
+/* indented blocks */
+.indented {
+  margin-left: calc(var(--main-margin)/2);
+  font-size: smaller;
+}
+
+div.indented * {
+  margin-block: 0.5em;
+}
+
+div.indented li {
+  margin-block: 0;
+}
+
+div.indented + table.indented {
+  /* table after the div should have bit more margin */
+  margin-top: 1.5em;
+}
+
+article h4 {
+  padding-top: 1.1em;
+}

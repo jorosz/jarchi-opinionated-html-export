@@ -1,38 +1,76 @@
-## Generate Single-page HTML Export
+# An Opinionated Single-page HTML Export for jArchi and Archi
 
-![image](https://user-images.githubusercontent.com/5757396/79693148-50620700-8269-11ea-9223-b5a384c9421f.png)
+\*Customized version of the fantastic HTML export tool for jArchi. This is a
+major rewrite that produces a very opinionated export of a very opinionated
+Archimate model into a single HTML page.
 
-Requires [jArchi](https:www.archimatetool.com/blog/2018/07/02/jarchi/)
+It can be used to export models that highlight applications, application flows
+(interfaces) and application functions in order to support a high level
+conceptual application design.
 
-This script creates a single HTML page which contains views contained into
-selected folders. This HTML page makes heavy use of CSS tricks to create
-a dynamic web application which doesn't rely on JavaScript.
-This non-JS approach is by design to allow the file to be previewed when
-stored on Onedrive Pro, MsTeams or SharePoint Document Library.
+The scripts exports all views from the selected folder alongside the views
+diagram, and generates documentation for each view.
 
-To use it, simply download the archive from the [latest release](https://github.com/archi-contribs/jarchi-single-page-html-export/releases) and unzip it in your `scripts` folder. Then select one or more folders containing views and run the script through the context menu.
+Copyright (c) 2026 J Orosz
 
-Mardown rendering of documentations is `on` by default. You can set it `off` in the "Preferences" dialog (cog icon on top right).
+-
 
+Based on https://github.com/archi-contribs/jarchi-single-page-html-export,
 Copyright (c) 2020 Phillip Beauvoir & Jean-Baptiste Sarrodie
 
->Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
+### Export content
+
+The meta-model for the export is very opinionated and therefore only a selected
+number of Archimate concepts are being used and exported:
+
+- Applications and modules shall be represented as Application Component
+  concepts.
+- Flow relationships represent data exchanges (i.e. interfaces) amongst those
+  components.
+- Application Functions concepts (bound to Application Components via
+  Realization Relationship) represent the functionality that will be
+  represented.
+
+The export creates a table with all applications, their realized functions and
+their flows for each view.
+
+### Other notable changes:
+
+- single page view (no tabs) as this is more efficient for exporting the model and this tool will be
+  used in that context more I believe
+- the original script implements a hiding logic where each concept in a table row is listed once and
+  the shown or hidden depending on view. my version produces the tables for each view, potentially
+  duplicating the content. it results in a cleaner code in my opinion at the cost of a slightly
+  bigger HTML result (we should be optimizing the generator not the generated content)
+- CSS handling logic sanitized, it's in a separate file so it can be linted
+- simplified (?) visibility rule creation
+- CSS variables replaced the parameters. it's 2026 and IE is dead (finally)!
+- TODO: all tree and navigation with show/hide logic simplified to a single navigation using anchors
+  to allow printing and export. also support for a single view should be added
+- removed markdown checkbox (it's on and that's it. nothing markdown does that should not
+  be done in terms of documenting stuff). marked has customized to ignore headers and render them as
+  a bold paragraph so h1/h2/h3 will not cause a formatting problem
+- all views from all sub folders get included
+- the tree view does not show folders, only the views are being listed, folders are being skipped. This
+  is for user simplicity. may add it back as an option at one point
+- there is an option to show everything, this is meant for exporting or printing the entire set of 
+  views
+- input radio button and tree generation are templates are merged
+
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
 >
->The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
 >
->THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
